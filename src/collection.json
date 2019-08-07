@@ -3,7 +3,8 @@
   "schematics": {
     "domain-module": {
       "description": "Generate domain module",
-      "factory": "./domain-module/index#domainModule"
+      "factory": "./domain-module/index#domainModule",
+      "schema": "./domain-module/schema.json"
     }
   }
 }
