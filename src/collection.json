@@ -1,9 +1,9 @@
 {
   "$schema": "../node_modules/@angular-devkit/schematics/collection-schema.json",
   "schematics": {
-    "angular-modules-generator": {
+    "domain-module": {
       "description": "Generate domain module",
-      "factory": "./doman-module/index#domainModule"
+      "factory": "./domain-module/index#domainModule"
     }
   }
 }
