@@ -11,6 +11,7 @@ import {
   } from '@angular-devkit/schematics';
 import { getWorkspace } from '@schematics/angular/utility/config';
 import { join, normalize } from 'path';
+import { strings } from '@angular-devkit/core';
 
 export function setupOptions(host: Tree, options: any): Tree {
   const workspace = getWorkspace(host);
@@ -29,7 +30,11 @@ export function domainModule(_options: any): Rule {
 
     const movePath = normalize(_options.path + '/');
     const templateSource = apply(url('./files/src'), [
-      template({ ..._options }),
+      template({
+        ..._options,
+        classify: strings.classify,
+        dasherize: strings.dasherize,
+      }),
       move(movePath)
     ]);
     const rule = mergeWith(templateSource, MergeStrategy.Overwrite);
