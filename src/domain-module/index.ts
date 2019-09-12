@@ -1,50 +1,38 @@
 import {
   apply,
-  applyTemplates,
-  chain,
+  MergeStrategy,
   mergeWith,
   move,
   Rule,
-  SchematicsException,
+  SchematicContext,
+  template,
   Tree,
   url
-} from '@angular-devkit/schematics';
-import { experimental, normalize, strings } from '@angular-devkit/core';
-import { Schema as DomainModuleSchema } from './schema';
+  } from '@angular-devkit/schematics';
+import { getWorkspace } from '@schematics/angular/utility/config';
+import { join, normalize } from 'path';
 
-export function domainModule(options: DomainModuleSchema): Rule {
-  return (tree: Tree) => {
-    const workspaceConfig = tree.read('/angular.json');
-    if (!workspaceConfig) {
-      throw new SchematicsException('Could not find Angular workspace configuration');
-    }
+export function setupOptions(host: Tree, options: any): Tree {
+  const workspace = getWorkspace(host);
+  if (!options.project) {
+    options.project = Object.keys(workspace.projects)[0];
+  }
+  const project = workspace.projects[options.project];
 
-    const workspaceContent = workspaceConfig.toString();
+  options.path = join(normalize(project.root), 'src');
+  return host;
+}
 
-    const workspace: experimental.workspace.WorkspaceSchema = JSON.parse(workspaceContent);
-    if (!options.project) {
-      options.project = workspace.defaultProject;
-    }
+export function domainModule(_options: any): Rule {
+  return (tree: Tree, _context: SchematicContext) => {
+    setupOptions(tree, _options);
 
-    const projectName = options.project as string;
-    const project = workspace.projects[projectName];
-    const projectType = project.projectType === 'application' ? 'app' : 'lib';
-
-    if (options.path === undefined) {
-      options.path = `${project.sourceRoot}/${projectType}`;
-    }
-
-    const templateSource = apply(url('./files'), [
-      applyTemplates({
-        classify: strings.classify,
-        dasherize: strings.dasherize,
-        name: options.name
-      }),
-      move(normalize(options.path as string))
+    const movePath = normalize(_options.path + '/');
+    const templateSource = apply(url('./files/src'), [
+      template({ ..._options }),
+      move(movePath)
     ]);
-
-    return chain([
-      mergeWith(templateSource)
-    ]);
+    const rule = mergeWith(templateSource, MergeStrategy.Overwrite);
+    return rule(tree, _context);
   };
 }
